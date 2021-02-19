@@ -7,10 +7,10 @@ const mysql = require('mysql');
 app.use(express.json());
 
 let conn = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'password',
-  database: 'persons',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
 });
 
 conn.connect((err) => {
@@ -32,12 +32,17 @@ app.get('/', (req, res) => {
   })
 })
 
-app.post('/add', (req, res) => {
-  let name = req.body.name;
-  let age = req.body.age;
-  let color = color;
+app.post('/', (req, res) => {
+  let name = req.query.name;
+  let age = Number(req.query.age);
+  let color = req.query.color;
 
-  conn.query(`INSERT INTO users VALUES (?, ?, ?)`, [name, age, color], (err,rows) => {
+  if (!name || !age || !color || age <= 0 ) {
+    res.status(400).json({'message': 'check your inputs'})
+    return;
+  }
+
+  conn.query(`INSERT INTO users (name, age, color) VALUES (?, ?, ?)`, [name, age, color], (err,rows) => {
     if (err) {
       console.log(err);
       res.status(400);
